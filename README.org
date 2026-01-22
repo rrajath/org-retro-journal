@@ -1,0 +1,78 @@
+#+TITLE: org-retro-journal.el
+#+AUTHOR: Rajath Ramakrishna
+#+DATE: 2026-01-22
+
+* Overview
+
+~org-retro-journal~ is an Emacs package designed for users who keep a daily journal using Org-mode's date tree structure. It provides an "On This Day" functionality, allowing you to seamlessly review entries from the same date (or the nearest existing date) across all previous years.
+
+It generates a clean, read-only ephemeral buffer that aggregates past entries without modifying your original journal file, complete with navigation tools to browse through your history.
+
+* Features
+
+- **Smart Date Matching:** Finds entries for the exact date. If no entry exists for a specific day in a past year, it automatically locates the nearest entry within that month.
+- **Date Tree Support:** specifically designed for the standard Org Datetree hierarchy (Year > Month > Day).
+- **Time Travel:** Navigate forward and backward through days or jump to a specific date using the calendar.
+- **Clean UI:** Results are displayed in a dedicated, read-only buffer with headlines folded to the "Contents" level for easy scanning.
+- **Non-destructive:** Operates safely by copying content to a temporary buffer; your original journal data is never touched.
+
+* Installation
+
+** Using straight.el (Local Recipe)
+
+If you have cloned this repository locally:
+
+#+begin_src emacs-lisp
+(use-package org-retro-journal
+  :straight (org-retro-journal
+             :type git
+             :host local
+             :repo "/path/to/your/org-retro-journal")
+  :bind
+  ("C-c r" . org-retro-journal-review))
+#+end_src
+
+** Using Emacs 29+ (package-vc)
+
+#+begin_src emacs-lisp
+(use-package org-retro-journal
+  :vc (:url "/path/to/your/org-retro-journal"
+       :branch "master")
+  :bind
+  ("C-c r" . org-retro-journal-review))
+#+end_src
+
+** Manual Installation
+
+1. Clone this repository.
+2. Add the directory to your ~load-path~.
+3. Require the package.
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/path/to/org-retro-journal")
+(require 'org-retro-journal)
+#+end_src
+
+* Usage
+
+1. Open your main journal file (the one containing the datetree).
+2. Run ~M-x org-retro-journal-review~ (or bind it to a key like ~C-c r~).
+3. A new window will appear showing entries from today's date in previous years.
+
+** Navigation Keybindings
+
+Once inside the ~*Org Retro Review*~ buffer, the following keys are available:
+
+| Key Binding | Description |
+|-------------+-------------|
+| ~C-c n~     | Go to the **Next** day |
+| ~<right>~   | Go to the **Next** day |
+| ~C-c p~     | Go to the **Previous** day |
+| ~<left>~    | Go to the **Previous** day |
+| ~C-c j~     | **Jump** to a specific date using the calendar |
+| ~q~         | **Quit** (close the window) |
+| ~TAB~       | Standard Org folding/unfolding |
+
+* Disclaimer
+
+This package was developed with assistance from an LLM (Perplexity AI). While it has been tested for standard Org-mode datetree workflows, users are encouraged to review the code to ensure it meets their specific requirements.
