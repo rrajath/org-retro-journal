@@ -1,6 +1,27 @@
 ;;; org-retro-journal.el --- View past journal entries with navigation -*- lexical-binding: t; -*-
 
+;; Author: Your Name <your@email.com>
+;; Version: 0.2.0
+;; Package-Requires: ((emacs "27.1") (org "9.0"))
+;; Keywords: org, journal, calendar
+;; URL: https://github.com/yourusername/org-retro-journal
+
+;;; Commentary:
+;; A package to view "On This Day" entries from an Org-mode date tree.
+
+;;; Code:
+
 (require 'org)
+
+(defgroup org-retro-journal nil
+  "Settings for Org Retro Journal."
+  :group 'org)
+
+(defcustom org-retro-journal-file nil
+  "The absolute path to your Org-mode journal file.
+This variable is required for `org-retro-journal-review' to function."
+  :type '(choice (const :tag "Not Set" nil) file)
+  :group 'org-retro-journal)
 
 ;;-- Internal Variables --
 (defvar-local org-retro-journal--source-buffer nil
@@ -13,11 +34,9 @@
 (defvar org-retro-journal-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-mode-map)
-    ;; Changed to C-c prefix to avoid Meow/Evil conflicts
     (define-key map (kbd "C-c n") #'org-retro-journal-next-day)
     (define-key map (kbd "C-c p") #'org-retro-journal-prev-day)
     (define-key map (kbd "C-c j") #'org-retro-journal-goto-date)
-    ;; Also allow arrow keys for convenience
     (define-key map (kbd "<right>") #'org-retro-journal-next-day)
     (define-key map (kbd "<left>") #'org-retro-journal-prev-day)
     (define-key map (kbd "q") #'quit-window)
@@ -82,10 +101,23 @@ Returns the buffer position of the day heading."
 ;;;###autoload
 (defun org-retro-journal-review (&optional date source-buf)
   "Show journal entries from DATE (defaults to today).
-SOURCE-BUF is the buffer containing the journal."
+SOURCE-BUF is the buffer containing the journal. If not provided,
+it resolves based on `org-retro-journal-file'."
   (interactive)
+  
+  ;; 1. Validation: Check if the file variable is set
+  (unless (and org-retro-journal-file (stringp org-retro-journal-file))
+    (user-error "Variable `org-retro-journal-file' is not set. Please set it to your journal path in your init file"))
+
+  ;; 2. Validation: Check if the file actually exists
+  (unless (file-exists-p org-retro-journal-file)
+    (user-error "The file at `org-retro-journal-file' (%s) does not exist" org-retro-journal-file))
+
   (let* ((target-date (or date (current-time)))
-         (source (or source-buf (current-buffer)))
+         ;; 3. Resolution: Get the buffer. 
+         ;; If passed in recursively (source-buf), use it.
+         ;; Otherwise, find/open the file defined in the config.
+         (source (or source-buf (find-file-noselect org-retro-journal-file)))
          (decoded (decode-time target-date))
          (target-year (decoded-time-year decoded))
          (target-month (decoded-time-month decoded))
@@ -93,16 +125,10 @@ SOURCE-BUF is the buffer containing the journal."
          (results-buffer (get-buffer-create "*Org Retro Review*"))
          (entries-found nil))
 
-    ;; Ensure we are reading from the correct buffer
-    (unless (buffer-live-p source)
-      (error "Original journal buffer is no longer active"))
-
     (with-current-buffer results-buffer
       (let ((inhibit-read-only t))
         (erase-buffer)
-        ;; Activate our custom mode
         (org-retro-journal-mode)
-        ;; Store state for navigation
         (setq org-retro-journal--current-date target-date)
         (setq org-retro-journal--source-buffer source)
         
@@ -110,7 +136,6 @@ SOURCE-BUF is the buffer containing the journal."
                         (format-time-string "%B %d" target-date)))
         (insert "#+NOTE: Keys: C-c (n)ext, C-c (p)rev, C-c (j)ump, Left/Right Arrows\n\n")))
 
-    ;; Scan the source buffer
     (with-current-buffer source
       (save-excursion
         (goto-char (point-min))
@@ -130,24 +155,21 @@ SOURCE-BUF is the buffer containing the journal."
                     
                     (with-current-buffer results-buffer
                       (let ((inhibit-read-only t))
-                        ;; Removed the diff-label logic here
                         (insert (format "* %d\n" year-val))
                         (insert content)
                         (insert "\n")))))))))))
 
-    ;; Finalize display
     (if entries-found
         (with-current-buffer results-buffer
           (let ((inhibit-read-only t))
             (goto-char (point-min))
             (org-content))
-          ;; CHANGED: pop-to-buffer forces focus to the new window
           (pop-to-buffer results-buffer))
       
-      ;; Empty state handling
       (with-current-buffer results-buffer
         (let ((inhibit-read-only t))
           (insert (format "\nNo entries found for %02d-%02d." target-month target-day)))
         (pop-to-buffer results-buffer)))))
 
 (provide 'org-retro-journal)
+

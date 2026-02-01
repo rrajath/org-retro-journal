@@ -18,46 +18,40 @@ It generates a clean, read-only ephemeral buffer that aggregates past entries wi
 
 * Installation
 
-** Using straight.el (Local Recipe)
+** Configuration (Required)
 
-If you have cloned this repository locally:
+You *must* set the ~org-retro-journal-file~ variable to point to your journal file path before using the package.
+
+*** Using straight.el
 
 #+begin_src emacs-lisp
-(use-package org-retro-journal
-  :straight (org-retro-journal
-             :type git
-             :host local
-             :repo "/path/to/your/org-retro-journal")
-  :bind
-  ("C-c r" . org-retro-journal-review))
+  (use-package org-retro-journal
+    :straight (org-retro-journal
+               :type git
+               :host local
+               :repo "/path/to/your/org-retro-journal")
+    :init
+    (setq org-retro-journal-file "~/path/to/my-journal.org") ;; <--- REQUIRED
+    :bind
+    ("C-c r" . org-retro-journal-review))
 #+end_src
 
-** Using Emacs 29+ (package-vc)
+*** Using Emacs 29+ (package-vc)
 
 #+begin_src emacs-lisp
-(use-package org-retro-journal
-  :vc (:url "/path/to/your/org-retro-journal"
-       :branch "master")
-  :bind
-  ("C-c r" . org-retro-journal-review))
-#+end_src
-
-** Manual Installation
-
-1. Clone this repository.
-2. Add the directory to your ~load-path~.
-3. Require the package.
-
-#+begin_src emacs-lisp
-(add-to-list 'load-path "/path/to/org-retro-journal")
-(require 'org-retro-journal)
+  (use-package org-retro-journal
+    :vc (:url "https://github.com/rrajath/org-retro-journal"
+              :branch "master")
+    :init
+    (setq org-retro-journal-file "~/path/to/my-journal.org") ;; <--- REQUIRED
+    :bind
+    ("C-c r" . org-retro-journal-review))
 #+end_src
 
 * Usage
 
-1. Open your main journal file (the one containing the datetree).
-2. Run ~M-x org-retro-journal-review~ (or bind it to a key like ~C-c r~).
-3. A new window will appear showing entries from today's date in previous years.
+1. Run ~M-x org-retro-journal-review~ (or bind it to a key like ~C-c r~).
+2. The package will automatically locate your journal file defined in configuration and show the entries in a new window.
 
 ** Navigation Keybindings
 
