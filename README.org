@@ -29,7 +29,7 @@ You *must* set the ~org-retro-journal-file~ variable to point to your journal fi
     :straight (org-retro-journal
                :type git
                :host local
-               :repo "/path/to/your/org-retro-journal")
+               :repo "rrajath/org-retro-journal")
     :init
     (setq org-retro-journal-file "~/path/to/my-journal.org") ;; <--- REQUIRED
     :bind
@@ -41,7 +41,7 @@ You *must* set the ~org-retro-journal-file~ variable to point to your journal fi
 #+begin_src emacs-lisp
   (use-package org-retro-journal
     :vc (:url "https://github.com/rrajath/org-retro-journal"
-              :branch "master")
+              :branch "main")
     :init
     (setq org-retro-journal-file "~/path/to/my-journal.org") ;; <--- REQUIRED
     :bind
